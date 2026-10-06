@@ -20,12 +20,30 @@ namespace Core.BackgroundServices
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            // Render sets RENDER_EXTERNAL_URL automatically; KEEPALIVE_URL overrides it
+            var baseUrl = Environment.GetEnvironmentVariable("KEEPALIVE_URL")
+                ?? Environment.GetEnvironmentVariable("RENDER_EXTERNAL_URL");
+
+            if (string.IsNullOrWhiteSpace(baseUrl))
+            {
+                return;
+            }
+
+            var pingUrl = baseUrl.TrimEnd('/') + "/swagger/index.html";
+
             while(!stoppingToken.IsCancellationRequested)
             {
-                using var scope = _scopeFactory.CreateScope();
-                var _httpClient = scope.ServiceProvider.GetRequiredService<IHttpClientFactory>().CreateClient();
+                try
+                {
+                    using var scope = _scopeFactory.CreateScope();
+                    var _httpClient = scope.ServiceProvider.GetRequiredService<IHttpClientFactory>().CreateClient();
 
-                await _httpClient.GetAsync("https://snetapi-evgqgtdcc0b6a2e9.germanywestcentral-01.azurewebsites.net/swagger/index.html", stoppingToken);
+                    await _httpClient.GetAsync(pingUrl, stoppingToken);
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    Console.WriteLine($"!!! Error refreshing API activity: {ex.Message}");
+                }
 
                 await Task.Delay(_interval, stoppingToken);
             }
