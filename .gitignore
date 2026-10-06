@@ -1,6 +1,4 @@
-/Api/appsettings.json
 .vs
-/Api/appsettings.json
 .github
 /Api/Properties/PublishProfiles
 /Api/Properties/launchSettings.json
@@ -284,3 +282,6 @@ __pycache__/
 /Api/Properties/launchSettings.json
 /Api/ffmpeg.exe
 /Api/ffprobe.exe
+
+# Secrets
+.env
